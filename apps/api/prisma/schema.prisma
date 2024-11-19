@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int      @id @default(autoincrement()) // auto-increment primary key
+  userName          String   @unique
+  // password                  String?
+  password          String
+  //? why this are optional
+  // firstName                 String?
+  // lastName                  String?
+  // nickName                  String?
+  firstName         String
+  lastName          String
+  nickName          String
+  sex               String
+  languages         String[]
+  // languagesWishToLearn      String[]   @db.StringArray
+  dob               DateTime
+  email             String   @unique
+  //not in sign
+  bio               String?
+  country           String
+  state             String
+  city              String?
+  phoneNumber       String?
+  telegramUserName  String?
+  facebookId        String?
+  instagramUserName String?
+  vkId              String?
+  weChatId          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  referalId         String?
+  refreshToken      String?
+  role              Role     @default(USER)
+
+  // userRoleMappings          UserRoleMapping[]
+  blogs        Blog[]
+  // referals                  Referals?
+  // userReferals              Referals[] @relation("UserReferals", fields: [id], references: [referalUserId])
+  Blogs        Blogs[]
+  Comments     Comments[]
+  BlogReaction BlogReaction[]
+}
+
+enum Sex {
+  Male
+  Female
+}
+
+enum Role {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+model Blog {
+  id         Int      @id @default(autoincrement())
+  title      String   @unique
+  content    String
+  authorId   Int
+  tags       String[]
+  references String[]
+  image      String
+  thumbnail  String?
+  blogType   BlogType
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  author     User     @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+}
+
+model Blogs {
+  id         Int      @id @default(autoincrement())
+  title      String   @unique
+  content    String
+  authorId   Int
+  tags       String[]
+  references String[]
+  image      String
+  videoLink  String?
+  blogType   BlogType @default(Blog)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  Comments     Comments[]
+  BlogReaction BlogReaction[]
+  //relations
+  author       User           @relation(fields: [authorId], references: [id])
+
+  @@index([authorId])
+}
+
+enum BlogType {
+  VBlog
+  Blog
+}
+
+model Comments {
+  id        Int      @id @default(autoincrement())
+  content   String
+  authorId  Int
+  blogId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  // Relations
+  author    User     @relation(fields: [authorId], references: [id])
+  blog      Blogs    @relation(fields: [blogId], references: [id], onDelete: Cascade)
+}
+
+model BlogReaction {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  blogId    Int
+  reaction  Reaction
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User  @relation(fields: [userId], references: [id])
+  blog Blogs @relation(fields: [blogId], references: [id], onDelete: Cascade)
+}
+
+enum Reaction {
+  LIKE
+  DISLIKE
+}
